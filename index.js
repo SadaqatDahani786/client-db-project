@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import pg from 'pg'
+import cookieParser from 'cookie-parser'
+import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -63,6 +65,7 @@ const DIR_NAME = dirname(fileURLToPath(import.meta.url))
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 /*
  ** ** ==============================================================================
@@ -90,9 +93,39 @@ app.get('/signup', (req, res) =>
  ** ** ** DASHBAORD
  ** **
  */
-app.get('/dashboard', (req, res) =>
-  res.sendFile('views/dashboard.html', { root: DIR_NAME })
-)
+app.get('/dashboard', (req, res) => {
+  //1) Get token from cookie
+  const token = req.cookies.jwt
+
+  //2) If no token, redirect to login page
+  if (!token) res.redirect('/')
+
+  //3) Verify token validity
+  jwt.verify(token, process.env.JWT_SECRET, {}, (err, payload) => {
+    //=> If err, redirect to login page
+    if (err) return res.redirect('/')
+
+    //=> Get username from payload
+    const { username } = payload
+
+    //=> Read dashboard view file
+    fs.readFile('views/dashboard.html', 'utf8', function (err, data) {
+      //=> If error, return
+      if (err)
+        return res.status(500).json({
+          status: 'failed',
+          error: 'Something went wrong, internal server error.',
+        })
+
+      //=> Replace
+      const result = data.replace(/%%NAME%%/g, username)
+
+      //=> Send updated html
+      res.set('Content-Type', 'text/html')
+      res.send(Buffer.from(result))
+    })
+  })
+})
 
 /*
  ** **
@@ -209,6 +242,24 @@ app.post(`${API_ENDPOINT}/signup`, (req, res) => {
       })
     }
   )
+})
+
+/*
+ ** **
+ ** ** ** LOGOUT API ENDPOINT
+ ** **
+ */
+app.get(`${API_ENDPOINT}/logout`, (req, res) => {
+  //1) Remove token from cookie
+  res.cookie('jwt', 'logged_out_user', {
+    expires: new Date(Date.now() + 60 * 1000),
+    httpOnly: true,
+  })
+
+  //2) Send Response
+  res.status(200).json({
+    status: 'success',
+  })
 })
 
 /*

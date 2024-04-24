@@ -59,6 +59,20 @@
     </main>
 
     <script>
+      /*
+       ** **
+       ** ** ** REDIRECT IF USER ALREADY LOGGED IN
+       ** **
+       */
+      if (window.localStorage.user) window.location.replace('/dashboard')
+
+      /*
+       ** **
+       ** ** ** HANDLE FORM SUBMIT
+       ** **
+       */
+      if (window.localStorage.user) window.location.replace('/dashboard')
+
       document
         .querySelector('#form-login')
         .addEventListener('submit', (e, s) => {
@@ -84,8 +98,9 @@
                 return alert(
                   `Signup unsuccessfull, ${resJson.error}, please try again.`
                 )
-              //=> No error, proceed to the dashbaord
-              else window.location.replace('/dashboard')
+              //=> No error, save the user in localstorage and proceed to the dashboard
+              window.localStorage.setItem('user', resJson.data.email)
+              window.location.replace('/dashboard')
             })
             .catch((err) => alert(`Error occured, ${err.message}`))
         })
