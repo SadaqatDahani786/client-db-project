@@ -129,6 +129,68 @@ app.post(`${API_ENDPOINT}/login`, (req, res) => {
 })
 
 /*
+ ** **
+ ** ** ** SIGNUP API ENDPOINT
+ ** **
+ */
+app.post(`${API_ENDPOINT}/signup`, (req, res) => {
+  //1) Get fields from the body
+  const { username, email, password } = req.body
+
+  //2) Check if values exist
+  if (!username || !email || !password)
+    return res
+      .status(400)
+      .json({ error: 'Must provide username, email and password to signup.' })
+
+  //3) Create user
+  psql_client.query(
+    `INSERT INTO users (username, email, password) VALUES ('${username}', '${email}', '${password}')`,
+    (err, results) => {
+      //=> If duplicate email error
+      if (err?.code === '23505') {
+        return res.status(400).json({
+          status: 'failed',
+          error: `An account with the email "${email}" already exist.`,
+        })
+      }
+
+      //=> If unknown error
+      if (err || results.rowCount <= 0) {
+        return res.status(500).json({
+          status: 'failed',
+          error: 'Something went wrong, there was an internal server error.',
+        })
+      }
+
+      //=> Signup successful, create json web token
+      const JWT_token = jwt.sign(
+        { username, email, password },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRATION,
+        }
+      )
+
+      //=> Save token in cookie
+      res.cookie('jwt', JWT_token, {
+        expires: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        sameSite: 'lax',
+        secure: true,
+        httpOnly: true,
+      })
+
+      //=> Send response along with cookie and token
+      return res.json({
+        status: 'success',
+        jwt: JWT_token,
+        data: { username, email, password },
+      })
+    }
+  )
+})
+
+/*
  ** ** ==============================================================================
  ** ** ** Start the http server
  ** ** ==============================================================================
