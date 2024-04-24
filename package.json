@@ -1,0 +1,20 @@
+{
+  "name": "client-db-project",
+  "version": "1.0.0",
+  "description": "A simple web application that connects to sql and nosql database and performs operations.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
