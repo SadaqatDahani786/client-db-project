@@ -62,6 +62,7 @@ const DIR_NAME = dirname(fileURLToPath(import.meta.url))
  */
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 /*
  ** ** ==============================================================================
@@ -74,6 +75,24 @@ app.use(express.json())
  ** **
  */
 app.get('/', (req, res) => res.sendFile('views/index.html', { root: DIR_NAME }))
+
+/*
+ ** **
+ ** ** ** SIGN UP PAGE
+ ** **
+ */
+app.get('/signup', (req, res) =>
+  res.sendFile('views/signup.html', { root: DIR_NAME })
+)
+
+/*
+ ** **
+ ** ** ** DASHBAORD
+ ** **
+ */
+app.get('/dashboard', (req, res) =>
+  res.sendFile('views/dashboard.html', { root: DIR_NAME })
+)
 
 /*
  ** **
@@ -95,13 +114,15 @@ app.post(`${API_ENDPOINT}/login`, (req, res) => {
       //=> If unknown error occured
       if (err) {
         return res.status(500).json({
+          status: 'failed',
           error: `Something went wrong, there was internal server error.`,
         })
       }
 
       //=> Wrong credentials
       if (results.rows.length <= 0) {
-        return res.json({
+        return res.status(404).json({
+          status: 'failed',
           error: 'No account with these credentials exist.',
         })
       }

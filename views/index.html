@@ -3,9 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sign In</title>
   </head>
   <body>
-    <h1>Login</h1>
+    <main class="flex h-screen flex justify-center items-center">
+      <form id="form-login" class="px-8 border-solid border border-gray-500">
+        <h1 class="py-6 text-4xl">Sign In</h1>
+        <div class="flex flex-col gap-2 py-2">
+          <label class="text-1xl" for="email">Email</label>
+          <input
+            class="w-96 border border-gray-500 rounded-sm p-2"
+            id="email"
+            type="email"
+            name="email"
+            required
+            placeholder="abc@gmail.com"
+          />
+        </div>
+        <div class="flex flex-col gap-2 py-2">
+          <label class="text-1xl" for="password">Password</label>
+          <input
+            class="w-96 border border-gray-500 rounded-sm p-2"
+            id="password"
+            type="password"
+            name="password"
+            required
+            placeholder="*********"
+          />
+        </div>
+        <div class="flex flex-col gap-2 py-6">
+          <button
+            type="submit"
+            class="text-1xl text-white bg-blue-500 hover:bg-blue-600 transition p-3 rounded-sm"
+          >
+            Login
+          </button>
+        </div>
+        <div class="flex flex-row gap-2 py-6">
+          New here?
+          <a href="/signup" class="text-1xl text-blue-500 hover:underline"
+            >Create an account</a
+          >
+        </div>
+      </form>
+    </main>
+
+    <script>
+      document
+        .querySelector('#form-login')
+        .addEventListener('submit', (e, s) => {
+          e.preventDefault()
+
+          //1) Get email and password
+          const email = document.querySelector('input[type=email]').value
+          const password = document.querySelector('input[type=password]').value
+
+          //2) Make post request to the server
+          fetch('http://localhost:3000/api/v1/login', {
+            body: JSON.stringify({ email, password }),
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then((res) => res.json())
+            .then((resJson) => {
+              //=> if request failed, show error
+              if (resJson.status === 'failed')
+                return alert(
+                  `Login unsuccessful, ${resJson.error}, please try again.`
+                )
+              //=> No error, proceed to the dashbaord
+              else window.location.replace('/dashboard')
+            })
+            .catch((err) => alert(`Error occured, ${err.message}`))
+        })
+    </script>
   </body>
 </html>
