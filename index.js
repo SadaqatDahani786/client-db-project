@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import pg from 'pg'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -9,6 +10,40 @@ import { fileURLToPath } from 'url'
  ** ** ==============================================================================
  */
 const app = express()
+const psql_client = new pg.Client({
+  host: process.env.PSQL_HOST,
+  port: process.env.PSQL_PORT,
+  user: process.env.PSQL_USER,
+  password: process.env.PSQL_USER_PWD,
+  database: process.env.PSQL_DB,
+})
+
+/*
+ ** ** ==============================================================================
+ ** ** ** DB CONNECTION
+ ** ** ==============================================================================
+ */
+try {
+  if (
+    !process.env.PSQL_HOST ||
+    !process.env.PSQL_PORT ||
+    !process.env.PSQL_USER ||
+    !process.env.PSQL_USER_PWD ||
+    !process.env.PSQL_DB
+  )
+    throw new Error(
+      '.env file must provide: PSQL_HOST, PSQL_PORT, PSQL_USER, PSQL_USER_PWD & PSQL_DB'
+    )
+
+  await psql_client.connect()
+  console.log(
+    `Connection to postgres database successfull.\t\t[${process.env.PSQL_USER}@${process.env.PSQL_HOST}:${process.env.PSQL_PORT}]`
+  )
+} catch (err) {
+  console.log(
+    `Connection to postgresql database unsuccessfull\t\t[${err.message}].`
+  )
+}
 
 /*
  ** ** ==============================================================================
