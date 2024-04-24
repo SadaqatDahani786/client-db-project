@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import pg from 'pg'
+import jwt from 'jsonwebtoken'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -67,8 +68,65 @@ app.use(express.json())
  ** ** ** Routes
  ** ** ==============================================================================
  */
-//Login Page
+/*
+ ** **
+ ** ** ** LOGIN PAGE
+ ** **
+ */
 app.get('/', (req, res) => res.sendFile('views/index.html', { root: DIR_NAME }))
+
+/*
+ ** **
+ ** ** ** LOGIN API ENDPOINT
+ ** **
+ */
+app.post(`${API_ENDPOINT}/login`, (req, res) => {
+  //1) Get fields from the body
+  const { email, password } = req.body
+
+  //2) Validate
+  if (!email || !password)
+    return res.status(400).json({ error: 'Please provide email and password.' })
+
+  //3) Check for user in database
+  psql_client.query(
+    `SELECT * FROM users WHERE email='${email}' AND password='${password}'`,
+    (err, results) => {
+      //=> If unknown error occured
+      if (err) {
+        return res.status(500).json({
+          error: `Something went wrong, there was internal server error.`,
+        })
+      }
+
+      //=> Wrong credentials
+      if (results.rows.length <= 0) {
+        return res.json({
+          error: 'No account with these credentials exist.',
+        })
+      }
+      //=> Login successful, create json web token
+      const JWT_token = jwt.sign(results.rows[0], process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRATION,
+      })
+
+      //=> Save token in cookie
+      res.cookie('jwt', JWT_token, {
+        expires: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        sameSite: 'lax',
+        secure: true,
+        httpOnly: true,
+      })
+
+      //=> Send response along with cookie and token
+      return res.json({
+        status: 'success',
+        jwt: JWT_token,
+        data: results.rows[0],
+      })
+    }
+  )
+})
 
 /*
  ** ** ==============================================================================
