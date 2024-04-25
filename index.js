@@ -1,11 +1,14 @@
-import express from 'express'
-import cors from 'cors'
-import pg from 'pg'
-import cookieParser from 'cookie-parser'
 import fs from 'fs'
-import jwt from 'jsonwebtoken'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
+
+import express from 'express'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
+import pg from 'pg'
+import jwt from 'jsonwebtoken'
+
+import { initializePostgresDB } from './utils/utils.js'
 
 /*
  ** ** ==============================================================================
@@ -27,6 +30,7 @@ const psql_client = new pg.Client({
  ** ** ==============================================================================
  */
 try {
+  //1) Validate
   if (
     !process.env.PSQL_HOST ||
     !process.env.PSQL_PORT ||
@@ -38,10 +42,14 @@ try {
       '.env file must provide: PSQL_HOST, PSQL_PORT, PSQL_USER, PSQL_USER_PWD & PSQL_DB'
     )
 
+  //2) Connect to postgres server
   await psql_client.connect()
   console.log(
     `Connection to postgres database successfull.\t\t[${process.env.PSQL_USER}@${process.env.PSQL_HOST}:${process.env.PSQL_PORT}]`
   )
+
+  //3) Initialized DB with th users
+  await initializePostgresDB(psql_client)
 } catch (err) {
   console.log(
     `Connection to postgresql database unsuccessfull\t\t[${err.message}].`
