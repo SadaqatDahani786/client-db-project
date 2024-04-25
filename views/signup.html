@@ -22,23 +22,25 @@
           />
         </div>
         <div class="flex flex-col gap-2 py-2">
-          <label class="text-1xl" for="email">Email</label>
-          <input
-            class="w-96 border border-gray-500 rounded-sm p-2"
-            id="email"
-            type="email"
-            name="email"
-            required
-            placeholder="abc@gmail.com"
-          />
-        </div>
-        <div class="flex flex-col gap-2 py-2">
           <label class="text-1xl" for="password">Password</label>
           <input
             class="w-96 border border-gray-500 rounded-sm p-2"
             id="password"
             type="password"
             name="password"
+            required
+            placeholder="*********"
+          />
+        </div>
+        <div class="flex flex-col gap-2 py-2">
+          <label class="text-1xl" for="password_confirm"
+            >Password Confirm</label
+          >
+          <input
+            class="w-96 border border-gray-500 rounded-sm p-2"
+            id="password_confirm"
+            type="password"
+            name="password_confirm"
             required
             placeholder="*********"
           />
@@ -79,13 +81,15 @@
           e.preventDefault()
 
           //1) Get username, email and password
-          const username = document.querySelector('input[type=text]').value
-          const email = document.querySelector('input[type=email]').value
-          const password = document.querySelector('input[type=password]').value
+          const username = document.querySelector('input[name=username]').value
+          const password = document.querySelector('input[name=password]').value
+          const password_confirm = document.querySelector(
+            'input[name=password_confirm]'
+          ).value
 
           //2) Make post request to the server
           fetch('http://localhost:3000/api/v1/signup', {
-            body: JSON.stringify({ username, email, password }),
+            body: JSON.stringify({ username, password, password_confirm }),
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -95,11 +99,9 @@
             .then((resJson) => {
               //=> if request failed, show error
               if (resJson.status === 'failed')
-                return alert(
-                  `Signup unsuccessfull, ${resJson.error}, please try again.`
-                )
+                return alert(`Signup Not Successfull!\n\n${resJson.error}`)
               //=> No error, save the user in localstorage and proceed to the dashboard
-              window.localStorage.setItem('user', resJson.data.email)
+              window.localStorage.setItem('user', resJson.data.username)
               window.location.replace('/dashboard')
             })
             .catch((err) => alert(`Error occured, ${err.message}`))

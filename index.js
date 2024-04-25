@@ -134,15 +134,17 @@ app.get('/dashboard', (req, res) => {
  */
 app.post(`${API_ENDPOINT}/login`, (req, res) => {
   //1) Get fields from the body
-  const { email, password } = req.body
+  const { username, password } = req.body
 
   //2) Validate
-  if (!email || !password)
-    return res.status(400).json({ error: 'Please provide email and password.' })
+  if (!username || !password)
+    return res
+      .status(400)
+      .json({ error: 'Please provide username and password.' })
 
   //3) Check for user in database
   psql_client.query(
-    `SELECT * FROM users WHERE email='${email}' AND password='${password}'`,
+    `SELECT * FROM users WHERE username='${username}' AND password='${password}'`,
     (err, results) => {
       //=> If unknown error occured
       if (err) {
@@ -189,23 +191,32 @@ app.post(`${API_ENDPOINT}/login`, (req, res) => {
  */
 app.post(`${API_ENDPOINT}/signup`, (req, res) => {
   //1) Get fields from the body
-  const { username, email, password } = req.body
+  const { username, password, password_confirm } = req.body
 
   //2) Check if values exist
-  if (!username || !email || !password)
-    return res
-      .status(400)
-      .json({ error: 'Must provide username, email and password to signup.' })
+  if (!username || !password || !password_confirm)
+    return res.status(400).json({
+      status: 'failed',
+      error: 'Must provide username, password and password confirm to signup.',
+    })
+
+  //3) Check if Password missmatch
+  if (password !== password_confirm)
+    return res.status(400).json({
+      status: 'failed',
+      error:
+        'Password and password confirm mismatched, please provide correct passwords.',
+    })
 
   //3) Create user
   psql_client.query(
-    `INSERT INTO users (username, email, password) VALUES ('${username}', '${email}', '${password}')`,
+    `INSERT INTO users (username, password) VALUES ('${username}', '${password}')`,
     (err, results) => {
-      //=> If duplicate email error
+      //=> If duplicate username error
       if (err?.code === '23505') {
         return res.status(400).json({
           status: 'failed',
-          error: `An account with the email "${email}" already exist.`,
+          error: `An account with the username "${username}" already exist.`,
         })
       }
 
@@ -219,7 +230,7 @@ app.post(`${API_ENDPOINT}/signup`, (req, res) => {
 
       //=> Signup successful, create json web token
       const JWT_token = jwt.sign(
-        { username, email, password },
+        { username, password },
         process.env.JWT_SECRET,
         {
           expiresIn: process.env.JWT_EXPIRATION,
@@ -238,7 +249,7 @@ app.post(`${API_ENDPOINT}/signup`, (req, res) => {
       return res.json({
         status: 'success',
         jwt: JWT_token,
-        data: { username, email, password },
+        data: { username, password },
       })
     }
   )
