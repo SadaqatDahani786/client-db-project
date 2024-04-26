@@ -8,7 +8,7 @@ A simple web application that connects to sql and nosql database and performs op
 
 2. Download Postgresql server from https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and install it. Remember the **username**, **password** and **port** you set during installation.
 
-3. Now search for pgadmin in your start menu and run the application, then click on servers to connect to your local postgresql server, then right on (Servers -> PostgreSQL -> Databases) and create a new database and give it any name. Remember the **database name** you set.
+3. Now search for pgadmin in your start menu and run the application, then click on servers to connect to your local postgresql server, then right click on (_Servers_ -> _PostgreSQL_ -> _Databases_) and create a new database and give it any name. Remember the **database name** you set.
 
 4. Now open the project in Vs Code and open a terminal/cmd and type this command `npm install` to install all the dependencies.
 
@@ -18,4 +18,4 @@ A simple web application that connects to sql and nosql database and performs op
 
 7. Finally open the browser and go to http://localhost:3000, and you'll see the login page.
 
-**NOTE:** Repeat the instructions if project failed to start due to some errors or something else.
+**NOTE:** Repeat the instructions if the project failed to run due to some errors, if the problem persists, contact the repository admin.
