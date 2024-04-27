@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 /*
  ** ** ==============================================================================
  ** ** ** Intialize users table with five records when app runs for the first time
@@ -50,4 +52,84 @@ export const initializePostgresDB = (client) => {
       )
     }
   })
+}
+
+/*
+ ** ** ==============================================================================
+ ** ** ** Intialize restaurants collection with the records stored in json file
+ ** ** ==============================================================================
+ */
+export const initializeMongoDB = async (client) => {
+  //1) Select db
+  const db = await client.db(process.env.MONGO_DB)
+
+  //2) Select collection
+  const restaurants = await db.collection('restaurants')
+
+  //3) IF no documents found, only then initialize
+  if ((await restaurants.countDocuments()) === 0) {
+    console.log(
+      'No restaurants collection detected in mongodb database.\t[Initializing]'
+    )
+
+    //=> Read data from restaurent json file
+    fs.readFile(
+      './restaurants.json',
+      { encoding: 'utf-8' },
+      async (err, data) => {
+        //=> If err, return
+        if (err)
+          return console.log(
+            `Failed to initialize mongodb database.\t\t[${err.message}]`
+          )
+
+        //=> else initialize
+        const results = await restaurants.insertMany(JSON.parse(data))
+
+        //=> Create search index
+        restaurants.createIndex(
+          {
+            name: 'text',
+            cuisine: 'text',
+            borough: 'text',
+            'address.street': 'text',
+            'grades.grade': 'text',
+          },
+          { default_language: 'none' }
+        )
+
+        //=> Print nice message
+        console.log(
+          `Mongodb database has initialized with the restaurents.\t[${results.insertedCount} docs inserted]`
+        )
+      }
+    )
+  }
+}
+
+/*
+ ** ** ==============================================================================
+ ** ** ** Compile views by executing code in each expression slot
+ ** ** ==============================================================================
+ */
+export const compileView = (data, props) => {
+  //1) Define var
+  let result = data
+
+  //2) Convert expression slots to pure js expression
+  const expressions = result
+    .match(/%%{.*}%%/g)
+    .map((m) => m.replace('%%{', '').replace('}%%', ''))
+
+  //3) Executing each expression, and project that into views
+  expressions.map((e) => {
+    const output = eval(e)
+    result = result.replace(
+      /%%{.*}%%/,
+      Array.isArray(output) ? output.join('') : output
+    )
+  })
+
+  //4) Return compiled view
+  return result
 }

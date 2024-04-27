@@ -6,9 +6,14 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import pg from 'pg'
+import mongodb from 'mongodb'
 import jwt from 'jsonwebtoken'
 
-import { initializePostgresDB } from './utils/utils.js'
+import {
+  compileView,
+  initializeMongoDB,
+  initializePostgresDB,
+} from './utils/utils.js'
 
 /*
  ** ** ==============================================================================
@@ -23,10 +28,13 @@ const psql_client = new pg.Client({
   password: process.env.PSQL_USER_PWD,
   database: process.env.PSQL_DB,
 })
+const mongodb_client = new mongodb.MongoClient(
+  `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`
+)
 
 /*
  ** ** ==============================================================================
- ** ** ** DB CONNECTION
+ ** ** ** DB CONNECTION [POSTGRESQL]
  ** ** ==============================================================================
  */
 try {
@@ -49,10 +57,38 @@ try {
   )
 
   //3) Initialized DB with th users
-  await initializePostgresDB(psql_client)
+  initializePostgresDB(psql_client)
 } catch (err) {
   console.log(
     `Connection to postgresql database unsuccessfull\t\t[${err.message}].`
+  )
+}
+
+/*
+ ** ** ==============================================================================
+ ** ** ** DB CONNECTION [MONGODB]
+ ** ** ==============================================================================
+ */
+try {
+  //1) Validate
+  if (
+    !process.env.MONGO_HOST ||
+    !process.env.MONGO_PORT ||
+    !process.env.MONGO_DB
+  )
+    throw new Error('.env file must provide: MONGO_HOST, MONGO_PORT, MONGO_DB')
+
+  //2) Connect to mongodb server
+  await mongodb_client.connect()
+  console.log(
+    `Connection to mongodb database successfull.\t\t[mongodb@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}]`
+  )
+
+  //3)
+  initializeMongoDB(mongodb_client)
+} catch (err) {
+  console.log(
+    `Connection to mongodb database unsuccessfull\t\t[${err.message}].`
   )
 }
 
@@ -117,7 +153,7 @@ app.get('/dashboard', (req, res) => {
     const { username } = payload
 
     //=> Read dashboard view file
-    fs.readFile('views/dashboard.html', 'utf8', function (err, data) {
+    fs.readFile('views/dashboard.html', 'utf8', async function (err, data) {
       //=> If error, return
       if (err)
         return res.status(500).json({
@@ -125,8 +161,25 @@ app.get('/dashboard', (req, res) => {
           error: 'Something went wrong, internal server error.',
         })
 
-      //=> Replace
-      const result = data.replace(/%%NAME%%/g, username)
+      //=> Select collection
+      const restaurents = mongodb_client
+        .db(process.env.MONGO_DB)
+        .collection('restaurants')
+
+      //=> Find in database with search query
+      const queryResults = restaurents.find({
+        $text: { $search: `\"${req.query?.search}\"` },
+      })
+
+      //=> Get the found documents as array
+      let docs = await queryResults.toArray()
+
+      //=> Compile view and store the result
+      const result = compileView(data, {
+        rows: docs,
+        search: req.query?.search,
+        name: username,
+      })
 
       //=> Send updated html
       res.set('Content-Type', 'text/html')
