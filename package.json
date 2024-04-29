@@ -5,7 +5,11 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon"
+    "start": "nodemon",
+    "docker:build": "sudo docker build -t 'nodejs_db_project' .",
+    "docker:up": "sudo docker-compose up",
+    "docker:remove": "sudo docker rmi --force $(sudo docker images -q 'nodejs_db_project' | uniq)",
+    "docker": "npm run docker:remove && npm run docker:build && npm run docker:up"
   },
   "keywords": [],
   "author": "",

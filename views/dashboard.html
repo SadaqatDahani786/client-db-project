@@ -30,23 +30,24 @@
           <button type="submit" class="bg-black text-white px-8 py-4 rounded-md">Search</button>          
         </form>
 
-        
-        <table class="block max-h-96 overflow-scroll border-collapse border border-slate-400 text-1xl text-white"> 
-          <thead class="border sticky top-0 bg-slate-700">
-            <tr class="">
-              <th class="border border-slate-400 p-4 ">Name</th>
-              <th class="border border-slate-400 p-4 ">Borough</th>
-              <th class="border border-slate-400 p-4 ">Cuisine</th>
-              <th class="border border-slate-400 p-4 ">Address</th>
-              <th class="border border-slate-400 p-4 ">Grade</th>
-            </tr>
-          </thead>
-          <tbody class="border bg-slate-200 text-black">
-            %%{props.rows.map(row => `<tr><td class="border border-slate-400 p-4">${row.name}</td><td class="border border-slate-400 p-4">${row.borough}</td><td class="border border-slate-400 p-4">${row.cuisine}</td><td class="border border-slate-400 p-4">${row.address.street}</td><td class="border border-slate-400 p-4">${row.grades.map(x => x.grade).join(', ')}</td></tr>`)}%%
-          </tbody>
-        </table>        
+        <div class="block relative max-h-96 overflow-scroll">
+          <table class="w-full border-collapse border border-slate-400 text-1xl text-white"> 
+            <thead class="border sticky top-0 bg-slate-700">
+              <tr class="">
+                <th class="border w-1/5 border-slate-400 p-4 ">Name</th>
+                <th class="border w-1/5 border-slate-400 p-4 ">Borough</th>
+                <th class="border w-1/5 border-slate-400 p-4 ">Cuisine</th>
+                <th class="border w-1/5 border-slate-400 p-4 ">Address</th>
+                <th class="border w-1/5 border-slate-400 p-4 ">Grade</th>
+              </tr>
+            </thead>
+            <tbody class="border bg-slate-200 text-black">
+              %%{props.rows.map(row => `<tr><td class="border border-slate-400 p-4">${row.name}</td><td class="border border-slate-400 p-4">${row.borough}</td><td class="border border-slate-400 p-4">${row.cuisine}</td><td class="border border-slate-400 p-4">${row.address.street}</td><td class="border border-slate-400 p-4">${row.grades.map(x => x.grade).join(', ')}</td></tr>`)}%%
+            </tbody>
+          </table>        
+        </div>
 
-        %%{props.search && props.rows.length <= 0 ? '<p>No Search found</p>': ''}%%
+        %%{props.search && props.rows.length <= 0 ? '<p>No Search results found</p>': ''}%%
       </div>
     </main>
 

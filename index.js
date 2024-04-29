@@ -29,7 +29,7 @@ const psql_client = new pg.Client({
   database: process.env.PSQL_DB,
 })
 const mongodb_client = new mongodb.MongoClient(
-  `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`
+  `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_USER_PWD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}?retryWrites=true&writeConcern=majority&authSource=admin`
 )
 
 /*
@@ -74,9 +74,13 @@ try {
   if (
     !process.env.MONGO_HOST ||
     !process.env.MONGO_PORT ||
-    !process.env.MONGO_DB
+    !process.env.MONGO_DB ||
+    !process.env.MONGO_USER ||
+    !process.env.MONGO_USER_PWD
   )
-    throw new Error('.env file must provide: MONGO_HOST, MONGO_PORT, MONGO_DB')
+    throw new Error(
+      '.env file must provide: MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_USER, MONGO_USER_PWD'
+    )
 
   //2) Connect to mongodb server
   await mongodb_client.connect()

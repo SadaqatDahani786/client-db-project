@@ -1,0 +1,18 @@
+version: '3'
+services:
+  postgresdb:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: users_db
+  mongodb:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: admin
+  app:
+    image: nodejs_db_project
+    ports:
+      - 3000:3000
