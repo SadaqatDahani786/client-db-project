@@ -8,8 +8,10 @@
     "start": "nodemon",
     "docker:build": "sudo docker build -t 'nodejs_db_project' .",
     "docker:up": "sudo docker-compose up",
-    "docker:remove": "sudo docker rmi --force $(sudo docker images -q 'nodejs_db_project' | uniq)",
-    "docker": "npm run docker:remove && npm run docker:build && npm run docker:up"
+    "docker:remove-image": "sudo docker rmi --force $(sudo docker images -q 'nodejs_db_project' | uniq)",
+    "docker:stop-containers": "sudo docker stop $(sudo docker ps -a -q)",
+    "docker:remove-containers": "sudo docker rm $(sudo docker ps -a -q)",
+    "docker": "npm run docker:stop-containers && npm run docker:remove-containers; npm run docker:remove-image; npm run docker:build && npm run docker:up"
   },
   "keywords": [],
   "author": "",
